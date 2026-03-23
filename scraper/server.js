@@ -117,29 +117,30 @@ app.post('/run-async', (req, res) => {
     }
 
     const id = ++jobId;
+
+    // Crear entrada en el Map INMEDIATAMENTE
+    let jobData = { id, script, status: 'running', exitCode: null, stdout: '', stderr: '', timestamp: new Date() };
+    jobs.set(id, jobData);
+
     const child = spawn('node', [script, ...args], {
       cwd: __dirname,
       timeout: 30 * 60 * 1000, // 30 minutos máximo
     });
 
-    let stdout = '';
-    let stderr = '';
-    let status = 'running';
-
     child.stdout?.on('data', (data) => {
-      stdout += data.toString();
+      jobData.stdout += data.toString();
     });
 
     child.stderr?.on('data', (data) => {
-      stderr += data.toString();
+      jobData.stderr += data.toString();
     });
 
     child.on('close', (code) => {
-      status = code === 0 ? 'success' : 'failed';
-      jobs.set(id, { id, script, status, exitCode: code, stdout, stderr, timestamp: new Date() });
+      jobData.status = code === 0 ? 'success' : 'failed';
+      jobData.exitCode = code;
     });
 
-    res.json({ jobId: id, status: 'queued' });
+    res.json({ jobId: id, status: 'running' });
 
   } catch (error) {
     res.status(500).json({ error: error.message });
