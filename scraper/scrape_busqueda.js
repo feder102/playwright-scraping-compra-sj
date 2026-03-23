@@ -103,7 +103,7 @@ function extraerKm(texto) {
 async function scrapeAnuncio(page, url) {
   try {
     await page.goto(url, { timeout: 30000 });
-    await page.waitForLoadState('domContentLoaded');
+    await page.waitForLoadState('domcontentloaded');
     
     const titulo = await page.title();
     const precioElem = await page.$('h3:has-text("$")');
@@ -165,7 +165,7 @@ async function buscarVehiculos(maxAnuncios = 50) {
   
   console.log("Cargando página de búsqueda...");
   await page.goto(url, { timeout: 30000 });
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('load');
   
   // Si hay parámetros, submit el formulario
   if (tipo || marca || modelo) {
