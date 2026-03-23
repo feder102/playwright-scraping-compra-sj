@@ -170,58 +170,124 @@ function extraerKm(texto) {
   return match ? parseInt(match[1].replace(/\./g, '')) : null;
 }
 
-async function scrapeAnuncio(page, url) {
+async function scrapeAnuncio(url) {
+  let browser = null;
+  let page = null;
+
   try {
-    await page.goto(url, { timeout: 30000 });
-    await page.waitForLoadState('domcontentloaded');
-    
-    const titulo = await page.title();
-    const precioElem = await page.$('h3:has-text("$")');
-    const precioTexto = precioElem ? await precioElem.innerText() : null;
-    const precio = extraerPrecio(precioTexto);
-    
-    const caracteristicas = {};
-    const lineas = await page.$$eval('td', tds => tds.map(td => td.innerText).filter(t => t.includes(':')));
-    
-    for (const linea of lineas) {
-      const [key, ...valueParts] = linea.split(':');
-      if (key && valueParts.length) {
-        caracteristicas[key.trim()] = valueParts.join(':').trim();
+    browser = await chromium.launch({ headless: true });
+    page = await browser.newPage();
+
+    await page.goto(url, { timeout: 60000, waitUntil: 'networkidle' }).catch(() => {});
+    await page.waitForLoadState('networkidle').catch(() => {});
+    // Dar tiempo para que el JavaScript cargue la sección de características
+    await page.waitForSelector('p.name-caracteristica', { timeout: 5000 }).catch(() => {});
+
+    // Extraer todos los datos de forma simple y directa (VERSIÓN FUNCIONAL DEL TEST)
+    const result = await page.evaluate(() => {
+      const data = {
+        titulo: '',
+        marca: '',
+        modelo: '',
+        version: '',
+        anio: null,
+        km: null,
+        color: '',
+        combustible: '',
+        estado: '',
+        precio: null,
+        imagen_url: null
+      };
+
+      // Título
+      const h1 = document.querySelector('h1');
+      if (h1) data.titulo = h1.innerText.trim();
+
+      // Precio
+      const h3s = document.querySelectorAll('h3');
+      for (let h3 of h3s) {
+        if (h3.innerText.includes('$')) {
+          const match = h3.innerText.replace(/\./g, '').replace(',', '.').match(/[\d]+/);
+          if (match) data.precio = parseFloat(match[0]);
+          break;
+        }
       }
+
+      // Características
+      const caracteristicas = document.querySelectorAll('p.name-caracteristica');
+
+      // Si no encuentra elementos, devolver con campos vacíos (mejor que crashear)
+      if (caracteristicas.length === 0) {
+        // Elementos no encontrados, pero devolvemos los datos que tenemos
+        return data;
+      }
+
+      for (let p of caracteristicas) {
+        const text = p.innerText.trim();
+        const span = p.querySelector('span.caracteristica');
+        const value = span ? span.innerText.trim() : '';
+
+        if (text.includes('Marca:')) data.marca = value;
+        else if (text.includes('Modelo:')) data.modelo = value;
+        else if (text.includes('Version:') || text.includes('Versión:')) data.version = value;
+        else if (text.includes('Año:')) {
+          const yearMatch = value.match(/\d{4}/);
+          if (yearMatch) data.anio = parseInt(yearMatch[0]);
+        }
+        else if (text.includes('Kilómetros:')) {
+          const kmMatch = value.match(/[\d\.]+/);
+          if (kmMatch) data.km = parseInt(kmMatch[0].replace(/\./g, ''));
+        }
+        else if (text.includes('Color:')) data.color = value;
+        else if (text.includes('Combustible:')) data.combustible = value;
+        else if (text.includes('Estado:')) data.estado = value;
+      }
+
+      // Imagen
+      const imgs = document.querySelectorAll('img[src*="fotos_vehiculos"]');
+      if (imgs.length > 0) {
+        data.imagen_url = imgs[0].src;
+      }
+
+      return data;
+    });
+
+    if (!result) {
+      console.error(`⚠️ No result from page.evaluate for ${url}`);
+      return null;
     }
-    
-    const marca = caracteristicas['Marca'] || '';
-    const modelo = caracteristicas['Modelo'] || '';
-    const version = caracteristicas['Version'] || '';
-    const anio = extraerAnio(caracteristicas['Año'] || '');
-    const km = extraerKm(caracteristicas['Kilómetros'] || '');
-    const color = caracteristicas['Color'] || '';
-    const combustible = caracteristicas['Combustible'] || '';
-    const estado = caracteristicas['Estado'] || '';
-    
-    const descripcion = await page.$eval('div.anuncio-descripcion', el => el.innerText).catch(() => null);
-    const imagenUrl = await page.$eval('img.anuncio-imagen', el => el.src).catch(() => null);
-    
-    return {
-      titulo,
+
+    const finalObject = {
+      titulo: result.titulo,
       url,
-      precio,
-      marca,
-      modelo,
-      version,
-      anio,
-      kilometros: km,
-      color,
-      combustible,
-      estado,
-      descripcion: descripcion ? descripcion.substring(0, 500) : null,
-      imagen_url: imagenUrl,
+      precio: result.precio,
+      marca: result.marca,
+      modelo: result.modelo,
+      version: result.version,
+      anio: result.anio,
+      kilometros: result.km,
+      color: result.color,
+      combustible: result.combustible,
+      estado: result.estado,
+      descripcion: null,
+      imagen_url: result.imagen_url,
       categoria: tipo || 'Vehículos',
       scraped_at: new Date().toISOString()
     };
+
+    return finalObject;
   } catch (e) {
     console.error(`Error scrapeando ${url}: ${e.message}`);
     return null;
+  } finally {
+    if (browser && page) {
+      try {
+        await page.close().catch(() => {});
+        await browser.close().catch(() => {});
+      } catch (err) {
+        // Ignore errors closing browser
+      }
+    }
   }
 }
 
@@ -229,52 +295,60 @@ async function buscarVehiculos(maxAnuncios = 50) {
   const url = construirURL();
   console.log("Iniciando búsqueda personalizada...");
   console.log("URL:", url);
-  
+
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext();
   const page = await context.newPage();
-  
+
   console.log("Cargando página de búsqueda...");
-  await page.goto(url, { timeout: 30000 });
-  await page.waitForLoadState('load');
-  
+  await page.goto(url, { timeout: 30000 }).catch(() => {});
+  await page.waitForLoadState('domcontentloaded').catch(() => {});
+
   // Si hay parámetros, submit el formulario
   if (tipo || marca || modelo) {
     await page.click('button:has-text("Buscar")').catch(() => {});
     await page.waitForTimeout(2000);
   }
-  
+
   // Encontrar enlaces de anuncios
   const enlaces = await page.$$eval('a[href*="anuncio_ve"]', els =>
     els.map(el => el.href).filter(h => h.includes('/anuncio_ve/'))
   );
-  
+
   const urls = [...new Set(enlaces)].slice(0, maxAnuncios);
   console.log(`Encontrados ${urls.length} anuncios`);
-  
+
+  await browser.close();
+
   const resultados = [];
+
+  // Procesar URLs de a 3 a la vez (limite de concurrencia)
   for (let i = 0; i < urls.length; i++) {
     console.log(`Scrapeando ${i+1}/${urls.length}: ${urls[i]}`);
-    const resultado = await scrapeAnuncio(page, urls[i]);
-    if (resultado) {
-      resultados.push(resultado);
+    try {
+      const resultado = await scrapeAnuncio(urls[i]);
+      if (resultado) {
+        resultados.push(resultado);
+      }
+    } catch (e) {
+      console.error(`Error procesando ${urls[i]}: ${e.message}`);
     }
   }
-  
-  await browser.close();
+
   return resultados;
 }
 
 async function guardarEnSupabase(datos) {
   console.log("Guardando en Supabase...");
+  console.log(`[BEFORE INSERT] Primer item:`, JSON.stringify(datos[0]));
   const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-  
+
   for (const item of datos) {
     try {
       const { error } = await supabase
         .from('compra_ensanjuan')
         .insert([item]);
-      
+
       if (error) {
         console.error(`Error guardando ${item.titulo}: ${error.message}`);
       } else {
@@ -305,6 +379,13 @@ async function main() {
     await guardarEnSupabase(resultados);
     console.log("\n=== RESUMEN ===");
     console.log(`Vehículos encontrados: ${resultados.length}`);
+
+    // Log first item in detail
+    if (resultados.length > 0) {
+      console.log("\n[DEBUG] Primer resultado:");
+      console.log(JSON.stringify(resultados[0], null, 2));
+    }
+
     resultados.forEach(v => {
       console.log(`- ${v.marca} ${v.modelo} (${v.anio}): $${v.precio?.toLocaleString() || 'N/A'}`);
     });
