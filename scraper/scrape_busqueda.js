@@ -201,6 +201,7 @@ async function scrapeAnuncio(page, url) {
       combustible,
       estado,
       descripcion: descripcion ? descripcion.substring(0, 500) : null,
+      imagen_url: imagenUrl,
       categoria: tipo || 'Vehículos',
       scraped_at: new Date().toISOString()
     };
