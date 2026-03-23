@@ -21,79 +21,88 @@ const TIPOS = {
   'Otros vehículos': '229'
 };
 
-// Mapeo de marcas a códigos mar_seg (Compra en SJ)
+// Mapeo de marcas a códigos cat (Compra en SJ - categoría)
 const MARCAS = {
-  'Ford': '22513',
+  'Ford': '22501',
   'Chevrolet': '22514',
   'Honda': '22515',
   'Renault': '22516',
   'Peugeot': '22517',
-  'Toyota': '22519',
+  'Toyota': '22530',
   'Nissan': '22520',
   'Volkswagen': '22531',
   'Fiat': '22510',
   'Hyundai': '22521'
 };
 
-// Mapeo de modelos a códigos mod_mar (Compra en SJ)
-// Estructura: 'Marca Modelo': 'mod_mar_code'
+// Mapeo de modelos a códigos cat específicos (Compra en SJ)
+// Estructura: 'Marca Modelo': { cat: 'category_code', nombre: 'Nombre Modelo' }
 const MODELOS = {
-  // Ford
-  'Ford Focus': '2251301',
-  'Ford Fiesta': '2251302',
-  'Ford Ranger': '2251304',
-  'Ford Mustang': '2251310',
-  'Ford Explorer': '2251311',
   // Volkswagen
-  'Volkswagen Gol': '2253101',
-  'Volkswagen Polo': '2253102',
-  'Volkswagen Vento': '2253103',
-  'Volkswagen Amarok': '2253111',
-  'Volkswagen Tiguan': '2253112',
-  'Volkswagen Touareg': '2253113',
-  // Chevrolet
-  'Chevrolet Corsa': '2251401',
-  'Chevrolet Prisma': '2251402',
-  'Chevrolet Cruze': '2251403',
-  'Chevrolet Montana': '2251404',
-  'Chevrolet S10': '2251405',
-  'Chevrolet Tracker': '2251406',
+  'Volkswagen Amarok': { cat: '2253111', nombre: 'Amarok' },
+  'Volkswagen Gol': { cat: '2253101', nombre: 'Gol' },
+  'Volkswagen Polo': { cat: '2253102', nombre: 'Polo' },
+  'Volkswagen Vento': { cat: '2253103', nombre: 'Vento' },
+  'Volkswagen Tiguan': { cat: '2253112', nombre: 'Tiguan' },
+  'Volkswagen Touareg': { cat: '2253113', nombre: 'Touareg' },
+
   // Toyota
-  'Toyota Corolla': '2251901',
-  'Toyota Etios': '2251902',
-  'Toyota Hilux': '2251905',
-  'Toyota SW4': '2251906',
-  'Toyota Fortuner': '2251907',
-  'Toyota Prius': '2251908',
+  'Toyota Hilux': { cat: '2253002', nombre: 'Hilux' },
+  'Toyota Hilux SW4': { cat: '2253003', nombre: 'Hilux SW4' },
+  'Toyota Corolla': { cat: '2253007', nombre: 'Corolla' },
+  'Toyota Etios': { cat: '2253008', nombre: 'Etios' },
+  'Toyota Fortuner': { cat: '2253009', nombre: 'Fortuner' },
+  'Toyota Prius': { cat: '2253010', nombre: 'Prius' },
+
+  // Ford
+  'Ford Ranger': { cat: '2250512', nombre: 'Ranger' },
+  'Ford Focus': { cat: '2250521', nombre: 'Focus' },
+  'Ford Fiesta': { cat: '2250522', nombre: 'Fiesta' },
+  'Ford Mustang': { cat: '2250523', nombre: 'Mustang' },
+  'Ford Explorer': { cat: '2250524', nombre: 'Explorer' },
+  'Ford Transit': { cat: '2250525', nombre: 'Transit' },
+
+  // Chevrolet
+  'Chevrolet Corsa': { cat: '2251401', nombre: 'Corsa' },
+  'Chevrolet Prisma': { cat: '2251402', nombre: 'Prisma' },
+  'Chevrolet Cruze': { cat: '2251403', nombre: 'Cruze' },
+  'Chevrolet Montana': { cat: '2251404', nombre: 'Montana' },
+  'Chevrolet S10': { cat: '2251405', nombre: 'S10' },
+  'Chevrolet Tracker': { cat: '2251406', nombre: 'Tracker' },
+
   // Honda
-  'Honda Civic': '2251501',
-  'Honda Accord': '2251502',
-  'Honda Fit': '2251503',
-  'Honda City': '2251504',
-  'Honda CR-V': '2251505',
+  'Honda Civic': { cat: '2251501', nombre: 'Civic' },
+  'Honda Accord': { cat: '2251502', nombre: 'Accord' },
+  'Honda Fit': { cat: '2251503', nombre: 'Fit' },
+  'Honda City': { cat: '2251504', nombre: 'City' },
+  'Honda CR-V': { cat: '2251505', nombre: 'CR-V' },
+
   // Renault
-  'Renault Clio': '2251601',
-  'Renault Sandero': '2251602',
-  'Renault Logan': '2251603',
-  'Renault Scenic': '2251604',
-  'Renault Koleos': '2251605',
+  'Renault Clio': { cat: '2251601', nombre: 'Clio' },
+  'Renault Sandero': { cat: '2251602', nombre: 'Sandero' },
+  'Renault Logan': { cat: '2251603', nombre: 'Logan' },
+  'Renault Scenic': { cat: '2251604', nombre: 'Scenic' },
+  'Renault Koleos': { cat: '2251605', nombre: 'Koleos' },
+
   // Fiat
-  'Fiat 500': '2251001',
-  'Fiat Uno': '2251002',
-  'Fiat Palio': '2251003',
-  'Fiat Mobi': '2251004',
-  'Fiat Argo': '2251005',
-  'Fiat Cronos': '2251006',
+  'Fiat 500': { cat: '2251001', nombre: '500' },
+  'Fiat Uno': { cat: '2251002', nombre: 'Uno' },
+  'Fiat Palio': { cat: '2251003', nombre: 'Palio' },
+  'Fiat Mobi': { cat: '2251004', nombre: 'Mobi' },
+  'Fiat Argo': { cat: '2251005', nombre: 'Argo' },
+  'Fiat Cronos': { cat: '2251006', nombre: 'Cronos' },
+
   // Peugeot
-  'Peugeot 208': '2251701',
-  'Peugeot 307': '2251702',
-  'Peugeot 408': '2251703',
-  'Peugeot 2008': '2251705',
+  'Peugeot 208': { cat: '2251701', nombre: '208' },
+  'Peugeot 307': { cat: '2251702', nombre: '307' },
+  'Peugeot 408': { cat: '2251703', nombre: '408' },
+  'Peugeot 2008': { cat: '2251705', nombre: '2008' },
+
   // Nissan
-  'Nissan Versa': '2252001',
-  'Nissan Sentra': '2252002',
-  'Nissan Frontier': '2252003',
-  'Nissan Kicks': '2252004',
+  'Nissan Versa': { cat: '2252001', nombre: 'Versa' },
+  'Nissan Sentra': { cat: '2252002', nombre: 'Sentra' },
+  'Nissan Frontier': { cat: '2252003', nombre: 'Frontier' },
+  'Nissan Kicks': { cat: '2252004', nombre: 'Kicks' },
 };
 
 // Argumentos: tipo, marca, modelo, añoDesde, añoHasta, precioDesde, precioHasta, kmDesde, kmHasta
@@ -101,40 +110,45 @@ const args = process.argv.slice(2);
 const [tipo, marca, modelo, añoDesde, añoHasta, precioDesde, precioHasta, kmDesde, kmHasta] = args;
 
 function construirURL() {
-  let url = `${BASE_URL}/b_vh.php`;
-  const params = new URLSearchParams();
-  
-  // Tipo -> ID
-  if (tipo && tipo !== 'Todos' && TIPOS[tipo]) {
-    params.append('tipo', TIPOS[tipo]);
-  }
-  
-  // Marca -> ID
-  if (marca && marca !== 'Todos' && MARCAS[marca]) {
-    params.append('mar_seg', MARCAS[marca]);
-  }
-  
-  // Modelo -> ID (busca con "Marca Modelo")
+  // Compra en SJ usa sistema de categorías (cat=)
+  // Primero intenta encontrar categoria específica para marca+modelo
+  // Si no, usa solo marca
+
+  let categoryCode = null;
+
+  // Buscar modelo específico (marca + modelo)
   if (modelo && marca) {
     const modeloKey = `${marca} ${modelo}`;
     if (MODELOS[modeloKey]) {
-      params.append('mod_mar', MODELOS[modeloKey]);
+      categoryCode = MODELOS[modeloKey].cat;
     }
   }
-  
-  params.append('vendedor', 'Todos');
-  params.append('primeramano', 'Todos');
-  params.append('combustible', 'Todos');
-  
-  if (kmDesde) params.append('km_desde', kmDesde);
-  if (kmHasta) params.append('km_hasta', kmHasta);
-  if (precioDesde) params.append('precio_desde', precioDesde);
-  if (precioHasta) params.append('precio_hasta', precioHasta);
-  if (añoDesde) params.append('anio_desde', añoDesde);
-  if (añoHasta) params.append('anio_hasta', añoHasta);
-  
+
+  // Si no encuentra modelo, usar marca sola
+  if (!categoryCode && marca && MARCAS[marca]) {
+    categoryCode = MARCAS[marca];
+  }
+
+  // Si no hay marca, usar categoría de camionetas (por defecto para búsquedas genéricas)
+  if (!categoryCode) {
+    categoryCode = '225'; // Camionetas, Utilitarios, SUV
+  }
+
+  let url = `${BASE_URL}/b.php`;
+  const params = new URLSearchParams();
+
+  params.append('cat', categoryCode);
+  params.append('estado', 'Todos');
+  params.append('foto', '');
+  params.append('conprecio', '');
   params.append('orden', '0');
-  
+
+  // Añadir filtros de precio y km si están disponibles
+  if (kmDesde || kmHasta || precioDesde || precioHasta || añoDesde || añoHasta) {
+    // El sitio puede no soportar estos parámetros en b.php
+    // Se filtran después en scrapeAnuncio()
+  }
+
   return `${url}?${params.toString()}`;
 }
 
