@@ -21,26 +21,79 @@ const TIPOS = {
   'Otros vehículos': '229'
 };
 
-// Mapeo de marcas a IDs (ejemplo)
+// Mapeo de marcas a códigos mar_seg (Compra en SJ)
 const MARCAS = {
-  'Toyota': '22530',
-  'Ford': '22515',
-  'Volkswagen': '22547',
-  'Chevrolet': '22508',
-  'Fiat': '22514',
-  'Honda': '22519',
-  'Nissan': '22529',
-  'Peugeot': '22533',
-  'Renault': '22537',
+  'Ford': '22513',
+  'Chevrolet': '22514',
+  'Honda': '22515',
+  'Renault': '22516',
+  'Peugeot': '22517',
+  'Toyota': '22519',
+  'Nissan': '22520',
+  'Volkswagen': '22531',
+  'Fiat': '22510',
   'Hyundai': '22521'
 };
 
-// Mapeo de modelos (ejemplo)
+// Mapeo de modelos a códigos mod_mar (Compra en SJ)
+// Estructura: 'Marca Modelo': 'mod_mar_code'
 const MODELOS = {
-  'Hilux': '2253002',
-  'Corolla': '2253007',
-  'Ranger': '2251506',
-  ' Amarok': '2254701'
+  // Ford
+  'Ford Focus': '2251301',
+  'Ford Fiesta': '2251302',
+  'Ford Ranger': '2251304',
+  'Ford Mustang': '2251310',
+  'Ford Explorer': '2251311',
+  // Volkswagen
+  'Volkswagen Gol': '2253101',
+  'Volkswagen Polo': '2253102',
+  'Volkswagen Vento': '2253103',
+  'Volkswagen Amarok': '2253111',
+  'Volkswagen Tiguan': '2253112',
+  'Volkswagen Touareg': '2253113',
+  // Chevrolet
+  'Chevrolet Corsa': '2251401',
+  'Chevrolet Prisma': '2251402',
+  'Chevrolet Cruze': '2251403',
+  'Chevrolet Montana': '2251404',
+  'Chevrolet S10': '2251405',
+  'Chevrolet Tracker': '2251406',
+  // Toyota
+  'Toyota Corolla': '2251901',
+  'Toyota Etios': '2251902',
+  'Toyota Hilux': '2251905',
+  'Toyota SW4': '2251906',
+  'Toyota Fortuner': '2251907',
+  'Toyota Prius': '2251908',
+  // Honda
+  'Honda Civic': '2251501',
+  'Honda Accord': '2251502',
+  'Honda Fit': '2251503',
+  'Honda City': '2251504',
+  'Honda CR-V': '2251505',
+  // Renault
+  'Renault Clio': '2251601',
+  'Renault Sandero': '2251602',
+  'Renault Logan': '2251603',
+  'Renault Scenic': '2251604',
+  'Renault Koleos': '2251605',
+  // Fiat
+  'Fiat 500': '2251001',
+  'Fiat Uno': '2251002',
+  'Fiat Palio': '2251003',
+  'Fiat Mobi': '2251004',
+  'Fiat Argo': '2251005',
+  'Fiat Cronos': '2251006',
+  // Peugeot
+  'Peugeot 208': '2251701',
+  'Peugeot 307': '2251702',
+  'Peugeot 408': '2251703',
+  'Peugeot 2008': '2251705',
+  // Nissan
+  'Nissan Versa': '2252001',
+  'Nissan Sentra': '2252002',
+  'Nissan Frontier': '2252003',
+  'Nissan Kicks': '2252004',
 };
 
 // Argumentos: tipo, marca, modelo, añoDesde, añoHasta, precioDesde, precioHasta, kmDesde, kmHasta
@@ -61,9 +114,12 @@ function construirURL() {
     params.append('mar_seg', MARCAS[marca]);
   }
   
-  // Modelo -> ID
-  if (modelo && MODELOS[modelo]) {
-    params.append('mod_mar', MODELOS[modelo]);
+  // Modelo -> ID (busca con "Marca Modelo")
+  if (modelo && marca) {
+    const modeloKey = `${marca} ${modelo}`;
+    if (MODELOS[modeloKey]) {
+      params.append('mod_mar', MODELOS[modeloKey]);
+    }
   }
   
   params.append('vendedor', 'Todos');

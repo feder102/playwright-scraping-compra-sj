@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  scraper:
+    build: .
+    container_name: scraper-api
+    volumes:
+      - ./output:/app/output
+    shm_size: '2gb'
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - NODE_ENV=production
+    networks:
+      - scraper_scraper-network
+    stdin_open: true
+    tty: true
+    command: sh -c "npm ci && node server.js"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  scraper_scraper-network:
+    driver: bridge
+    name: scraper_scraper-network  # Nombre explícito para evitar ambigüedad
