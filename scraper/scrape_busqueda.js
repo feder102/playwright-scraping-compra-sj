@@ -14,15 +14,17 @@ const MARCAS = {
   'Ford': '22501',
   'Chevrolet': '22514',
   'Honda': '22515',
+  'Volkswagen': '22531',
 };
 
 const MODELOS = {
   'Toyota Hilux': { cat: '2253002', nombre: 'Hilux' },
   'Ford Ranger': { cat: '2250512', nombre: 'Ranger' },
+  'Volkswagen Amarok': { cat: '2253111', nombre: 'Amarok' },
 };
 
 const args = process.argv.slice(2);
-const [tipo, marca, modelo] = args;
+const [tipo, marca, modelo, anioDesde, anioHasta, precioDesde, precioHasta, kmDesde, kmHasta] = args;
 
 function construirURL() {
   const url = `${BASE_URL}/b.php`;
@@ -40,6 +42,18 @@ function construirURL() {
       params.append('mod_mar', MODELOS[modeloKey].cat);
     }
   }
+
+  // Pasar años si existen
+  if (anioDesde) params.append('anio_desde', anioDesde);
+  if (anioHasta) params.append('anio_hasta', anioHasta);
+
+  // Pasar precios si existen
+  if (precioDesde) params.append('precio_desde', precioDesde);
+  if (precioHasta) params.append('precio_hasta', precioHasta);
+
+  // Pasar km si existen
+  if (kmDesde) params.append('km_desde', kmDesde);
+  if (kmHasta) params.append('km_hasta', kmHasta);
 
   // Parámetros por defecto
   params.append('estado', 'Todos');
