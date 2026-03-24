@@ -98,13 +98,64 @@ async function scrapeAnuncio(url) {
       const h1 = document.querySelector('h1');
       if (h1) data.titulo = h1.innerText.trim();
 
-      // Precio
-      const h3s = document.querySelectorAll('h3');
-      for (let h3 of h3s) {
-        if (h3.innerText.includes('$')) {
-          const match = h3.innerText.replace(/\./g, '').replace(',', '.').match(/[\d]+/);
-          if (match) data.precio = parseFloat(match[0]);
-          break;
+      // Precio - Intentar múltiples métodos
+      let precioEncontrado = false;
+
+      // Método 1: h3 con $
+      if (!precioEncontrado) {
+        const h3s = document.querySelectorAll('h3');
+        for (let h3 of h3s) {
+          const text = h3.innerText;
+          if (text.includes('$') || text.includes('U$S')) {
+            // Limpiar: "$ 28.000.000" o "U$S 17.000" → 28000000 o 17000
+            const cleaned = text.replace(/[^\d.,]/g, '').replace(/\./g, '').replace(',', '.');
+            const match = cleaned.match(/[\d.]+/);
+            if (match) {
+              data.precio = parseFloat(match[0]);
+              precioEncontrado = true;
+              break;
+            }
+          }
+        }
+      }
+
+      // Método 2: span con clase que incluya "precio"
+      if (!precioEncontrado) {
+        const spans = document.querySelectorAll('span[class*="precio"], span[class*="price"]');
+        for (let span of spans) {
+          const text = span.innerText;
+          if (text.match(/[\d.,]/)) {
+            const cleaned = text.replace(/[^\d.,]/g, '').replace(/\./g, '').replace(',', '.');
+            const match = cleaned.match(/[\d.]+/);
+            if (match) {
+              const valor = parseFloat(match[0]);
+              if (valor > 100) { // Filtro: un precio real debe ser > 100
+                data.precio = valor;
+                precioEncontrado = true;
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      // Método 3: div con patrón de precio
+      if (!precioEncontrado) {
+        const divs = document.querySelectorAll('div');
+        for (let div of divs) {
+          const text = div.innerText;
+          if ((text.includes('$') || text.includes('U$S')) && text.match(/[\d.,]{4,}/)) {
+            const cleaned = text.replace(/[^\d.,]/g, '').replace(/\./g, '').replace(',', '.');
+            const match = cleaned.match(/[\d.]+/);
+            if (match) {
+              const valor = parseFloat(match[0]);
+              if (valor > 100) {
+                data.precio = valor;
+                precioEncontrado = true;
+                break;
+              }
+            }
+          }
         }
       }
 
