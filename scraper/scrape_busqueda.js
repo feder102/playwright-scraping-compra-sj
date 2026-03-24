@@ -207,6 +207,11 @@ async function buscarVehiculos(maxAnuncios = 30) {
     if (resultado) {
       resultados.push(resultado);
     }
+
+    // Pequeño delay para que Chrome libere recursos
+    if (i < urls.length - 1) {
+      await new Promise(r => setTimeout(r, 150));
+    }
   }
 
   return resultados;
