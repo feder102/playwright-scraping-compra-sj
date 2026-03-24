@@ -27,8 +27,11 @@ const args = process.argv.slice(2);
 const [tipo, marca, modelo, anioDesde, anioHasta, precioDesde, precioHasta, kmDesde, kmHasta] = args;
 
 function construirURL() {
-  const url = `${BASE_URL}/b.php`;
+  const url = `${BASE_URL}/b_vh.php`;
   const params = new URLSearchParams();
+
+  // Tipo de vehículo (categoría)
+  params.append('tipo', '225'); // 225 = Camionetas, Utilitarios, SUV
 
   // Pasar marca si existe
   if (marca && MARCAS[marca]) {
@@ -43,22 +46,24 @@ function construirURL() {
     }
   }
 
+  // Parámetros por defecto para vehículos
+  params.append('vendedor', 'Todos');
+  params.append('primeramano', 'Todos');
+  params.append('combustible', 'Todos');
+
+  // Pasar km si existen
+  params.append('km_desde', kmDesde || '');
+  params.append('km_hasta', kmHasta || '');
+
+  // Pasar precios si existen
+  params.append('precio_desde', precioDesde || '');
+  params.append('precio_hasta', precioHasta || '');
+
   // Pasar años si existen
   if (anioDesde) params.append('anio_desde', anioDesde);
   if (anioHasta) params.append('anio_hasta', anioHasta);
 
-  // Pasar precios si existen
-  if (precioDesde) params.append('precio_desde', precioDesde);
-  if (precioHasta) params.append('precio_hasta', precioHasta);
-
-  // Pasar km si existen
-  if (kmDesde) params.append('km_desde', kmDesde);
-  if (kmHasta) params.append('km_hasta', kmHasta);
-
-  // Parámetros por defecto
-  params.append('estado', 'Todos');
-  params.append('foto', '');
-  params.append('conprecio', '');
+  // Ordenamiento
   params.append('orden', '0');
 
   return `${url}?${params.toString()}`;
