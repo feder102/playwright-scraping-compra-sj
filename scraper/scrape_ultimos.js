@@ -46,13 +46,17 @@ async function scrapearUltimos(maxAnuncios = 20) {
         const imgElement = item.querySelector('img');
         let imagenUrl = '';
         if (imgElement) {
-          const imgSrc = imgElement.getAttribute('src');
-          if (imgSrc) {
-            try {
-              const urlObj = new URL(imgSrc, baseUrl);
-              imagenUrl = urlObj.href;
-            } catch (e) {
-              imagenUrl = imgSrc.startsWith('http') ? imgSrc : baseUrl + '/' + imgSrc;
+          let imgSrc = imgElement.getAttribute('src');
+          if (imgSrc && imgSrc.trim() !== '') {
+            // Limpiar rutas relativas
+            imgSrc = imgSrc.replace(/^\.\//, '');
+
+            if (imgSrc.startsWith('http')) {
+              imagenUrl = imgSrc;
+            } else if (imgSrc.startsWith('/')) {
+              imagenUrl = baseUrl + imgSrc;
+            } else {
+              imagenUrl = baseUrl + '/' + imgSrc;
             }
           }
         }
