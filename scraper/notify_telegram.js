@@ -111,10 +111,34 @@ async function main() {
     if (!jsonData || !Array.isArray(jsonData)) {
       console.error('Error: No se pudo parsear el JSON del scraper');
       console.error('Output recibido:', SCRAPER_OUTPUT.slice(0, 200));
+
+      // Intentar enviar mensaje de error a Telegram
+      if (SCRAPER_OUTPUT.includes('Error') || SCRAPER_OUTPUT.includes('Timeout')) {
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('es-AR');
+        const timeStr = now.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+
+        const errorMsg = `❌ <b>Error en scraper</b>\n${dateStr} ${timeStr}\n\n`;
+        const errorDetail = SCRAPER_OUTPUT.substring(0, 300);
+        await sendMessageToTelegram(errorMsg + errorDetail);
+      }
+
       process.exit(1);
     }
 
     console.log(`✅ Scraper encontró ${jsonData.length} anuncios`);
+
+    // Si no hay anuncios, enviar mensaje informativo
+    if (jsonData.length === 0) {
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('es-AR');
+      const timeStr = now.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+
+      const msg = `ℹ️ <b>Sin anuncios</b>\n${dateStr} ${timeStr}\n\nNo se encontraron anuncios nuevos.`;
+      await sendMessageToTelegram(msg);
+      console.log('✅ Notificación completada (sin anuncios)');
+      return;
+    }
 
     // Enviar mensaje de resumen
     const now = new Date();

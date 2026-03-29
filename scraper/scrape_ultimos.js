@@ -20,8 +20,16 @@ async function scrapearUltimos(maxAnuncios = 20) {
 
   try {
     console.error("Cargando página de últimos publicados...");
-    await page.goto(ULTIMOS_URL, { timeout: 30000 });
-    await page.waitForLoadState('load');
+    // Timeout más generoso (60s) y esperar a domcontentloaded primero
+    await page.goto(ULTIMOS_URL, { timeout: 60000, waitUntil: 'domcontentloaded' }).catch(() => {
+      // Si falla, intentar sin esperar 'load' completo
+      console.error("⚠️ No se pudo esperar 'domcontentloaded', continuando...");
+    });
+
+    // Intentar esperar a 'load', pero con timeout corto
+    await page.waitForLoadState('load').catch(() => {
+      console.error("⚠️ Página no completó 'load', continuando con 'domcontentloaded'...");
+    });
 
     // Extraer todos los anuncios
     const anuncios = await page.evaluate((baseUrl) => {
