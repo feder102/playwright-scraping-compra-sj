@@ -9,7 +9,34 @@ if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
   process.exit(1);
 }
 
-async function sendToTelegram(message) {
+async function sendPhotoToTelegram(imageUrl, caption) {
+  const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: TELEGRAM_CHAT_ID,
+        photo: imageUrl,
+        caption: caption,
+        parse_mode: 'HTML',
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(`Telegram API error: ${JSON.stringify(error)}`);
+    }
+
+    return true;
+  } catch (error) {
+    console.error('❌ Error enviando foto a Telegram:', error.message);
+    return false;
+  }
+}
+
+async function sendMessageToTelegram(message) {
   const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
 
   try {
@@ -28,41 +55,26 @@ async function sendToTelegram(message) {
       throw new Error(`Telegram API error: ${JSON.stringify(error)}`);
     }
 
-    console.log('✅ Mensaje enviado a Telegram');
+    return true;
   } catch (error) {
-    console.error('❌ Error enviando a Telegram:', error.message);
-    process.exit(1);
+    console.error('❌ Error enviando mensaje a Telegram:', error.message);
+    return false;
   }
 }
 
-function formatMessage(anuncios) {
-  const now = new Date();
-  const dateStr = now.toLocaleDateString('es-AR');
-  const timeStr = now.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+function formatCaption(anuncio) {
+  const titulo = anuncio.titulo
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .slice(0, 100);
+  const categoria = anuncio.categoria || 'N/A';
+  const url = anuncio.url.replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-  let message = `🕐 <b>Scrape compraensanjuan.com</b>\n${dateStr} ${timeStr}\n\n`;
-  message += `📦 <b>${anuncios.length} anuncios encontrados</b>\n\n`;
+  let caption = `<b>${titulo}</b>\n`;
+  caption += `📂 <i>${categoria}</i>\n`;
+  caption += `<a href="${url}">🔗 Ver anuncio</a>`;
 
-  // Limitar a 20 para no exceder límites de Telegram
-  const listado = anuncios.slice(0, 20);
-
-  listado.forEach((anuncio, idx) => {
-    const titulo = anuncio.titulo
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .slice(0, 50);
-    const categoria = anuncio.categoria || 'N/A';
-    const url = anuncio.url.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
-    message += `${idx + 1}. <b>${titulo}</b> <i>(${categoria})</i>\n`;
-    message += `   <a href="${url}">🔗 Ver anuncio</a>\n\n`;
-  });
-
-  if (anuncios.length > 20) {
-    message += `<i>... y ${anuncios.length - 20} más</i>`;
-  }
-
-  return message;
+  return caption;
 }
 
 async function main() {
@@ -72,18 +84,26 @@ async function main() {
       process.exit(1);
     }
 
-    // Extraer la última línea que debería ser el JSON
-    const lines = SCRAPER_OUTPUT.trim().split('\n');
+    // Extraer JSON del output (puede estar precedido por logs)
     let jsonData = null;
 
-    // Buscar la primera línea que comienza con '[' (array JSON)
-    for (const line of lines) {
-      if (line.trim().startsWith('[')) {
+    // Buscar el array JSON (comienza con [ seguido de whitespace/newline y {)
+    const jsonMatch = SCRAPER_OUTPUT.match(/\[\s*\{[\s\S]*\]\s*$/);
+
+    if (jsonMatch) {
+      try {
+        jsonData = JSON.parse(jsonMatch[0]);
+      } catch (e) {
+        console.error('Error al parsear JSON:', e.message);
+        // Intentar un segundo método: buscar desde [ más cercano al final
         try {
-          jsonData = JSON.parse(line);
-          break;
-        } catch (e) {
-          // Continuar buscando
+          const lastBracket = SCRAPER_OUTPUT.lastIndexOf('[');
+          if (lastBracket !== -1) {
+            const jsonStr = SCRAPER_OUTPUT.substring(lastBracket);
+            jsonData = JSON.parse(jsonStr);
+          }
+        } catch (e2) {
+          // No se pudo parsear
         }
       }
     }
@@ -94,8 +114,41 @@ async function main() {
       process.exit(1);
     }
 
-    const message = formatMessage(jsonData);
-    await sendToTelegram(message);
+    console.log(`✅ Scraper encontró ${jsonData.length} anuncios`);
+
+    // Enviar mensaje de resumen
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('es-AR');
+    const timeStr = now.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+
+    let summary = `🕐 <b>Scrape compraensanjuan.com</b>\n`;
+    summary += `${dateStr} ${timeStr}\n\n`;
+    summary += `📦 <b>${jsonData.length} anuncios encontrados</b>\n\n`;
+
+    await sendMessageToTelegram(summary);
+
+    // Enviar cada anuncio con su imagen (máximo 10 para no saturar)
+    const limit = Math.min(10, jsonData.length);
+    for (let i = 0; i < limit; i++) {
+      const anuncio = jsonData[i];
+      const caption = formatCaption(anuncio);
+
+      if (anuncio.imagen_url) {
+        await sendPhotoToTelegram(anuncio.imagen_url, caption);
+      } else {
+        await sendMessageToTelegram(`${i + 1}. ${caption}`);
+      }
+
+      // Pequeño delay para no saturar la API
+      await new Promise(r => setTimeout(r, 300));
+    }
+
+    if (jsonData.length > limit) {
+      const footer = `<i>... y ${jsonData.length - limit} anuncios más</i>`;
+      await sendMessageToTelegram(footer);
+    }
+
+    console.log('✅ Notificación completada');
   } catch (error) {
     console.error('Error:', error.message);
     process.exit(1);
