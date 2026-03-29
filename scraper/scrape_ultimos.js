@@ -7,7 +7,7 @@
 const { chromium } = require('playwright');
 
 const BASE_URL = "https://www.compraensanjuan.com";
-const ULTIMOS_URL = `${BASE_URL}/ultimos_publicados.php?cat=`;
+const ULTIMOS_URL = `${BASE_URL}/b.php?texto=&cat=200&pagina=1&orden=10&conprecio=1&estado=Todos&foto=1&envio=0`;
 
 /**
  * Extrae los últimos anuncios de la página
