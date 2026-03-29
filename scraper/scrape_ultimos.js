@@ -27,39 +27,44 @@ async function scrapearUltimos(maxAnuncios = 20) {
     const anuncios = await page.evaluate((baseUrl) => {
       const resultados = [];
 
-      // Buscar todos los divs que contienen anuncios
-      const items = document.querySelectorAll('[class*="aviso"]');
+      // Buscar los items individuales (filas de la tabla/lista)
+      // Cada item está en un div.row.lista-avisos
+      const items = document.querySelectorAll('div.row.lista-avisos');
 
       for (const item of items) {
-        // Buscar el link del anuncio
-        const linkElement = item.querySelector('a[href*="anuncio_"]');
-        if (!linkElement) continue;
+        // Buscar el link principal del anuncio (en .aviso-title)
+        const titleElement = item.querySelector('.aviso-title a');
+        if (!titleElement) continue;
 
-        const href = linkElement.getAttribute('href');
+        const href = titleElement.getAttribute('href');
         if (!href) continue;
 
         // Url completa
-        const url = baseUrl + '/' + href;
+        const url = href.startsWith('http') ? href : baseUrl + '/' + href;
 
         // Imagen
-        const imgElement = item.querySelector('.img-lista');
+        const imgElement = item.querySelector('img');
         let imagenUrl = '';
-        if (imgElement && imgElement.parentElement) {
+        if (imgElement) {
           const imgSrc = imgElement.getAttribute('src');
           if (imgSrc) {
-            imagenUrl = baseUrl + '/' + imgSrc.replace('?v=' + new URLSearchParams(new URL(imgSrc).search).get('v'), '');
+            try {
+              const urlObj = new URL(imgSrc, baseUrl);
+              imagenUrl = urlObj.href;
+            } catch (e) {
+              imagenUrl = imgSrc.startsWith('http') ? imgSrc : baseUrl + '/' + imgSrc;
+            }
           }
         }
 
         // Título
-        const titleElement = item.querySelector('.aviso-title a');
-        const titulo = titleElement ? titleElement.innerText.trim() : '';
+        const titulo = titleElement.innerText.trim();
 
-        // Categoría (primer breadcrumb después de "Compra en SJ")
+        // Categoría (primer link de categoría dentro del item)
         const categoria = (() => {
-          const breadcrumbs = item.querySelectorAll('.aviso-categoria-start a');
-          if (breadcrumbs.length > 0) {
-            return breadcrumbs[0].innerText.trim();
+          const categoryLink = item.querySelector('.aviso-categoria-start a');
+          if (categoryLink) {
+            return categoryLink.innerText.trim();
           }
           return 'Sin categoría';
         })();
