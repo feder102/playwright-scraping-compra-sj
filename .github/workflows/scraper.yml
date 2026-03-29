@@ -1,4 +1,4 @@
-name: Twice-daily Scraper
+name: scraper de autos
 
 on:
   schedule:
