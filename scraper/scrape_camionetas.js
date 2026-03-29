@@ -20,13 +20,15 @@ async function scrapearCamionetas(maxAnuncios = 10) {
 
   try {
     console.error("Cargando página de camionetas...");
-    await page.goto(CAMIONETAS_URL, { timeout: 60000, waitUntil: 'domcontentloaded' }).catch(() => {
-      console.error("⚠️ No se pudo esperar 'domcontentloaded', continuando...");
+    await page.goto(CAMIONETAS_URL, { timeout: 60000, waitUntil: 'networkidle' }).catch(() => {
+      console.error("⚠️ No se pudo esperar 'networkidle', intentando con 'domcontentloaded'...");
+      return page.goto(CAMIONETAS_URL, { timeout: 60000, waitUntil: 'domcontentloaded' }).catch(() => {
+        console.error("⚠️ No se pudo esperar 'domcontentloaded' tampoco, continuando...");
+      });
     });
 
-    await page.waitForLoadState('load').catch(() => {
-      console.error("⚠️ Página no completó 'load', continuando con 'domcontentloaded'...");
-    });
+    // Esperar un poco más para asegurar estabilidad del DOM
+    await new Promise(r => setTimeout(r, 2000));
 
     const anuncios = await page.evaluate(({ baseUrl, maxAnuncios }) => {
       const resultados = [];
