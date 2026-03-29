@@ -69,8 +69,10 @@ function formatCaption(anuncio) {
     .slice(0, 100);
   const categoria = anuncio.categoria || 'N/A';
   const url = anuncio.url.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const precio = anuncio.precio ? `$ ${anuncio.precio}` : 'Sin precio';
 
   let caption = `<b>${titulo}</b>\n`;
+  caption += `💵 <b>${precio}</b>\n`;
   caption += `📂 <i>${categoria}</i>\n`;
   caption += `<a href="${url}">🔗 Ver anuncio</a>`;
 

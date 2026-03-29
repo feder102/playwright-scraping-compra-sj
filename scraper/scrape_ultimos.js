@@ -81,12 +81,27 @@ async function scrapearUltimos(maxAnuncios = 20) {
           return 'Sin categoría';
         })();
 
+        // Precio (buscar en divs que contienen $)
+        let precio = null;
+        const priceDivs = item.querySelectorAll('div');
+        for (const div of priceDivs) {
+          const text = div.innerText;
+          if (text.includes('$')) {
+            const match = text.match(/\$\s*([\d.]+(?:\.[\d]{3})*)/);
+            if (match && match[1]) {
+              precio = match[1];
+              break;
+            }
+          }
+        }
+
         if (titulo && url) {
           resultados.push({
             titulo,
             url,
             imagen_url: imagenUrl,
             categoria,
+            precio,
             scraped_at: new Date().toISOString()
           });
 
