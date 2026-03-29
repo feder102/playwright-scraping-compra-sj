@@ -1,0 +1,48 @@
+name: Scraper Camionetas
+
+on:
+  schedule:
+    # 11:00 UTC = 08:00 Argentina (UTC-3)
+    - cron: '0 11 * * *'
+    # 23:00 UTC = 20:00 Argentina (UTC-3)
+    - cron: '0 23 * * *'
+  workflow_dispatch:
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        working-directory: ./scraper
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        working-directory: ./scraper
+        run: npx playwright install chromium --with-deps
+
+      - name: Run scraper camionetas
+        working-directory: ./scraper
+        id: scraper
+        run: |
+          OUTPUT=$(node scrape_camionetas.js 2>&1)
+          echo "output<<EOF" >> $GITHUB_OUTPUT
+          echo "$OUTPUT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Send to Telegram
+        working-directory: ./scraper
+        run: |
+          node notify_telegram.js
+        env:
+          SCRAPER_OUTPUT: ${{ steps.scraper.outputs.output }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
