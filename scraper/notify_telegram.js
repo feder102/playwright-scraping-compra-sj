@@ -153,9 +153,8 @@ async function main() {
 
     await sendMessageToTelegram(summary);
 
-    // Enviar cada anuncio con su imagen (máximo 10 para no saturar)
-    const limit = Math.min(10, jsonData.length);
-    for (let i = 0; i < limit; i++) {
+    // Enviar todos los anuncios con su imagen
+    for (let i = 0; i < jsonData.length; i++) {
       const anuncio = jsonData[i];
       const caption = formatCaption(anuncio);
 
@@ -167,11 +166,6 @@ async function main() {
 
       // Pequeño delay para no saturar la API
       await new Promise(r => setTimeout(r, 300));
-    }
-
-    if (jsonData.length > limit) {
-      const footer = `<i>... y ${jsonData.length - limit} anuncios más</i>`;
-      await sendMessageToTelegram(footer);
     }
 
     console.log('✅ Notificación completada');

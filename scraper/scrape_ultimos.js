@@ -12,7 +12,7 @@ const ULTIMOS_URL = `${BASE_URL}/b.php?texto=&cat=200&pagina=1&orden=10&conpreci
 /**
  * Extrae los últimos anuncios de la página
  */
-async function scrapearUltimos(maxAnuncios = 20) {
+async function scrapearUltimos(maxAnuncios = 10) {
   console.error(`[${new Date().toISOString()}] Iniciando scrape de últimos publicados...`);
 
   const browser = await chromium.launch({ headless: true });
@@ -32,7 +32,7 @@ async function scrapearUltimos(maxAnuncios = 20) {
     });
 
     // Extraer todos los anuncios
-    const anuncios = await page.evaluate((baseUrl) => {
+    const anuncios = await page.evaluate(({ baseUrl, maxAnuncios }) => {
       const resultados = [];
 
       // Buscar los items individuales (filas de la tabla/lista)
@@ -105,12 +105,12 @@ async function scrapearUltimos(maxAnuncios = 20) {
             scraped_at: new Date().toISOString()
           });
 
-          if (resultados.length >= 20) break;
+          if (resultados.length >= maxAnuncios) break;
         }
       }
 
       return resultados;
-    }, BASE_URL);
+    }, { baseUrl: BASE_URL, maxAnuncios });
 
     console.error(`✅ Scrape completado: ${anuncios.length} anuncios encontrados`);
     return anuncios.slice(0, maxAnuncios);
@@ -135,7 +135,7 @@ function formatearJSON(anuncios) {
  */
 async function main() {
   try {
-    const anuncios = await scrapearUltimos(20);
+    const anuncios = await scrapearUltimos(10);
 
     // Output: JSON limpio a stdout (sin mensajes de debug)
     console.log(formatearJSON(anuncios));

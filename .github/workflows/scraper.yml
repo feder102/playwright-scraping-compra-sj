@@ -1,7 +1,9 @@
-name: Daily Scraper
+name: Twice-daily Scraper
 
 on:
   schedule:
+    # 14:00 UTC = 11:00 Argentina (UTC-3)
+    - cron: '0 14 * * *'
     # 00:00 UTC = 21:00 Argentina (UTC-3)
     - cron: '0 0 * * *'
   workflow_dispatch:
