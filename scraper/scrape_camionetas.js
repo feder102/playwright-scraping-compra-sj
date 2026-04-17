@@ -7,7 +7,7 @@
 const { chromium } = require('playwright');
 
 const BASE_URL = "https://www.compraensanjuan.com";
-const CAMIONETAS_URL = `${BASE_URL}/b.php?texto=&cat=225&pagina=1&orden=0&conprecio=1&estado=Todos&foto=1&envio=0`;
+const CAMIONETAS_URL = `${BASE_URL}/b.php?texto=&cat=225&pagina=1&orden=10&conprecio=1&estado=Todos&foto=1&envio=0`;
 
 /**
  * Extrae los anuncios de camionetas de la página de listado
