@@ -1,7 +1,7 @@
 const { chromium } = require('playwright');
 
 const BASE_URL = "https://www.compraensanjuan.com";
-const CATEGORIA_URL = `${BASE_URL}/b.php?cat=225&orden=QueDes,fchact`;
+const CATEGORIA_URL = `${BASE_URL}/b.php?cat=225&orden=10`;
 
 (async () => {
   const browser = await chromium.launch({ headless: true });

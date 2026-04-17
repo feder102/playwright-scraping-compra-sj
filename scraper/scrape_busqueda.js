@@ -64,7 +64,7 @@ function construirURL() {
   if (anioHasta) params.append('anio_hasta', anioHasta);
 
   // Ordenamiento
-  params.append('orden', '0');
+  params.append('orden', '10');
 
   return `${url}?${params.toString()}`;
 }

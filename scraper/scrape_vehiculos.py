@@ -15,7 +15,7 @@ SUPABASE_URL = "https://rwauwtqeywzzjonycipf.supabase.co"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3YXV3dHFleXd6empvbnljaXBmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MzkyODg1OSwiZXhwIjoyMDg5NTA0ODU5fQ.y0EpBD24tXv3M-aeO5yp57dyj8vUSkz0MSrEy3xS4Mc"
 
 BASE_URL = "https://www.compraensanjuan.com"
-CATEGORIA_URL = f"{BASE_URL}/b.php?cat=225&orden=QueDes,fchact"
+CATEGORIA_URL = f"{BASE_URL}/b.php?cat=225&orden=10"
 
 def extraer_precio(texto):
     """Extrae precio numérico del texto"""
