@@ -112,7 +112,7 @@ async function scrapearCamionetas(maxAnuncios = 10) {
 
 async function main() {
   try {
-    const anuncios = await scrapearCamionetas(10);
+    const anuncios = await scrapearCamionetas(15);
     console.log(JSON.stringify(anuncios, null, 2));
   } catch (error) {
     console.error(`❌ Error fatal: ${error.message}`);

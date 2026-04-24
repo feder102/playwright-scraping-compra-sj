@@ -1,11 +1,9 @@
-name: Scraper Camionetas
+name: Scraper Otros Vehículos
 
 on:
   schedule:
-    # 11:00 UTC = 08:00 Argentina (UTC-3)
-    - cron: '0 11 * * *'
-    # 21:00 UTC = 18:00 Argentina (UTC-3)
-    - cron: '0 21 * * *'
+    # 00:00 UTC = 21:00 Argentina (UTC-3)
+    - cron: '0 0 * * *'
   workflow_dispatch:
 
 jobs:
@@ -29,11 +27,11 @@ jobs:
         working-directory: ./scraper
         run: npx playwright install chromium --with-deps
 
-      - name: Run scraper camionetas
+      - name: Run scraper otros vehículos
         working-directory: ./scraper
         id: scraper
         run: |
-          OUTPUT=$(node scrape_camionetas.js 2>&1)
+          OUTPUT=$(node scrape_otros.js 2>&1)
           echo "output<<EOF" >> $GITHUB_OUTPUT
           echo "$OUTPUT" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT

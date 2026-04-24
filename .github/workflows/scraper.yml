@@ -2,10 +2,10 @@ name: scraper de autos
 
 on:
   schedule:
-    # 14:00 UTC = 11:00 Argentina (UTC-3)
-    - cron: '0 14 * * *'
-    # 00:00 UTC = 21:00 Argentina (UTC-3)
-    - cron: '0 0 * * *'
+    # 12:00 UTC = 09:00 Argentina (UTC-3)
+    - cron: '0 12 * * *'
+    # 22:00 UTC = 19:00 Argentina (UTC-3)
+    - cron: '0 22 * * *'
   workflow_dispatch:
 
 jobs:
